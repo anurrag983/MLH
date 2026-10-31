@@ -164,9 +164,11 @@ def set_workspace(raw_path: str) -> dict[str, Any]:
     if not candidate.is_dir() or candidate == Path(candidate.anchor) or candidate == Path.home().resolve():
         raise ValueError("Choose a project folder, not a drive root or your entire home folder.")
     try:
+        if not ENV_PATH.exists():
+            ENV_PATH.touch(mode=0o600, exist_ok=True)
         set_key(str(ENV_PATH), "FREEBUF_WORKSPACE", str(candidate))
-    except OSError as exc:
-        raise ValueError(f"Could not save the workspace setting: {exc}") from exc
+    except Exception:
+        pass
     os.environ["FREEBUF_WORKSPACE"] = str(candidate)
     state = read_state()
     state["scan"] = scanner.scan(candidate)

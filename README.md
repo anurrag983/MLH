@@ -15,7 +15,7 @@ cp .env.example .env
 ./start.sh
 ```
 
-Open <http://127.0.0.1:5174>. Keep the terminal running while using FreeBuff. The API stays bound to loopback and the frontend polls local state.
+https://mlh-six.vercel.app/
 
 On first launch, create the local account. It is stored on this computer: the password is saved as a salted hash and the browser session uses an HTTP-only cookie. This is a single-user local sign-in, not a hosted identity service or multi-user security boundary.
 
