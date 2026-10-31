@@ -176,6 +176,89 @@ def set_workspace(raw_path: str) -> dict[str, Any]:
     return write_state(state)
 
 
+def clone_github_repository(raw_url: str) -> dict[str, Any]:
+    """Clone a GitHub repository into the user's Documents folder and select it."""
+    value = (raw_url or "").strip()
+    if len(value) > 500:
+        raise ValueError("That GitHub link is too long. Paste the repository's main page URL.")
+    match = re.fullmatch(
+        r"(?:https://github\.com/|git@github\.com:)([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?/?",
+        value,
+        re.IGNORECASE,
+    )
+    if not match:
+        raise ValueError("Paste a GitHub repository URL like https://github.com/owner/repository.")
+    owner, repository = match.groups()
+    if owner in {".", ".."} or repository in {".", ".."}:
+        raise ValueError("That GitHub repository link is not valid.")
+
+    # Rebuild the network URL from validated components so embedded credentials,
+    # query strings, and non-GitHub hosts can never reach the Git subprocess.
+    clone_url = f"https://github.com/{owner}/{repository}.git"
+    parent = Path.home() / "Documents" / "FreeBuff Projects"
+    if parent.is_symlink():
+        raise ValueError("The FreeBuff Projects folder cannot be a symbolic link.")
+    try:
+        parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        parent = parent.resolve(strict=True)
+    except OSError as exc:
+        raise ValueError(f"Could not create {parent}. Allow the terminal running FreeBuff to access Documents, then try again. ({exc})") from exc
+    if not parent.is_dir():
+        raise ValueError("The FreeBuff Projects location is not a folder.")
+
+    folder_name = re.sub(r"[^A-Za-z0-9._-]+", "-", repository).strip(".-_")[:80] or "github-project"
+    destination = parent / folder_name
+    suffix = 2
+    while True:
+        try:
+            # Reserve an empty destination atomically, so failure cleanup can
+            # only remove the directory created by this clone request.
+            destination.mkdir(mode=0o700)
+            break
+        except FileExistsError:
+            destination = parent / f"{folder_name}-{suffix}"
+            suffix += 1
+
+    gh = _github_cli()
+    gh_authenticated = False
+    env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GH_PROMPT_DISABLED="1", GH_NO_UPDATE_NOTIFIER="1")
+    if gh:
+        try:
+            auth_status = subprocess.run(
+                [gh, "auth", "status", "--hostname", "github.com"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=15,
+                env=env,
+            )
+            gh_authenticated = auth_status.returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            gh_authenticated = False
+
+    command = [gh, "repo", "clone", f"{owner}/{repository}", str(destination)] if gh_authenticated else ["git", "clone", "--", clone_url, str(destination)]
+    try:
+        cloned = subprocess.run(command, cwd=parent, capture_output=True, text=True, timeout=300, env=env)
+    except subprocess.TimeoutExpired as exc:
+        shutil.rmtree(destination, ignore_errors=True)
+        raise ValueError("Cloning took too long. Check the repository size and your internet connection, then try again.") from exc
+    except OSError as exc:
+        shutil.rmtree(destination, ignore_errors=True)
+        raise ValueError(f"Could not start Git to clone this project: {exc}") from exc
+    if cloned.returncode:
+        shutil.rmtree(destination, ignore_errors=True)
+        details = (cloned.stderr or cloned.stdout or "GitHub could not clone this repository.").strip()
+        lowered = details.lower()
+        if "authentication" in lowered or "permission denied" in lowered or "repository not found" in lowered or "could not read username" in lowered:
+            raise ValueError("GitHub could not access that repository. Check the URL and visibility. For a private repository, sign in to GitHub CLI once and retry.")
+        raise ValueError(details[:1200])
+
+    state = set_workspace(str(destination))
+    state = read_state()
+    log_activity(f"Cloned GitHub project {owner}/{repository}", state)
+    return write_state(state)
+
+
 def import_folder(name: str, files: list[dict[str, str]]) -> dict[str, Any]:
     """Create a safe, local review copy for browsers that hide dropped folder paths."""
     normalized_name = re.sub(r"[^A-Za-z0-9._-]+", "-", name.strip()).strip(".-_")[:64] or "project"
