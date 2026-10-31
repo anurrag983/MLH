@@ -5,6 +5,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://freebuff-8zlc.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
