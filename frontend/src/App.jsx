@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { BookOpen, CheckCircle2, CircleAlert, FileCode2, FolderOpen, FolderPlus, GitCommitHorizontal, GitPullRequest, History, LoaderCircle, ScanLine, Shield, UserRound } from "lucide-react"
+import { BookOpen, CheckCircle2, CircleAlert, Download, FileCode2, FolderOpen, FolderPlus, GitCommitHorizontal, GitPullRequest, Github, History, LoaderCircle, ScanLine, Shield, UserRound } from "lucide-react"
 import ActivityStream from "./components/ActivityStream"
 import AccountDialog from "./components/AccountDialog"
 import AuthScreen from "./components/AuthScreen"
@@ -128,6 +128,7 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [commitMessage, setCommitMessage] = useState("")
   const [workspaceInput, setWorkspaceInput] = useState("")
+  const [cloneUrl, setCloneUrl] = useState("")
   const [remoteUrl, setRemoteUrl] = useState("")
   const [branchName, setBranchName] = useState("freebuf/my-change")
   const [prTitle, setPrTitle] = useState("")
@@ -215,11 +216,11 @@ export default function App() {
       requestSequence.current += 1
       setApiConnected(true)
       if (endpoint !== "browse-folder") setState(data)
-      if (typeof data.ship?.commit_message === "string" && ["ship", "workspace", "import-folder"].includes(endpoint)) {
+      if (typeof data.ship?.commit_message === "string" && ["ship", "workspace", "import-folder", "clone"].includes(endpoint)) {
         persistedCommitMessage.current = data.ship.commit_message
         setCommitMessage(data.ship.commit_message)
       }
-      if (["workspace", "import-folder"].includes(endpoint) && data.workspace?.path) {
+      if (["workspace", "import-folder", "clone"].includes(endpoint) && data.workspace?.path) {
         persistedWorkspace.current = data.workspace.path
         setWorkspaceInput(data.workspace.path)
         const currentRemote = data.ship?.git?.remote || data.scan?.git?.remote || ""
@@ -231,7 +232,13 @@ export default function App() {
         setScannedForWorkspace("")
         setReviewedFindingsKey("")
         setSelectedStep(1)
-        setToast({ message: endpoint === "import-folder" ? `${data.workspace.name} is ready for a local scan.` : `Using project folder: ${data.workspace.name}`, type: "success" })
+        if (endpoint === "clone") setCloneUrl("")
+        const message = endpoint === "import-folder"
+          ? `${data.workspace.name} is ready for a local scan.`
+          : endpoint === "clone"
+            ? `${data.workspace.name} downloaded and ready to scan.`
+            : `Using project folder: ${data.workspace.name}`
+        setToast({ message, type: "success" })
       } else if (endpoint === "scan") {
         const path = data.workspace?.path || workspace.path
         setScannedForWorkspace(path)
@@ -478,12 +485,31 @@ export default function App() {
                 <Button kind="primary" className="!px-5 !py-2.5 !text-sm" disabled={!!busy || !workspaceInput.trim()}><FolderOpen size={16} />Use this folder</Button>
               </form>
               {workspace.path && <div className="mt-4 flex items-start gap-3 rounded-xl border border-mint/20 bg-mint/[.05] p-4"><CheckCircle2 size={20} className="mt-0.5 shrink-0 text-mint" /><div><p className="text-sm font-bold text-emerald-100">Current project: {workspace.name}</p><p className="mt-1 break-all mono text-xs leading-5 text-slate-300">{workspace.path}</p></div></div>}
+              <div className="mt-5 border-t border-line pt-5">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-violet-300/20 bg-violet-300/[.08] text-violet-200"><Github size={19} /></div>
+                  <div><h3 className="text-sm font-bold text-slate-100">Start from a GitHub project</h3><p className="mt-1 text-xs leading-5 text-slate-300">Paste your friend's repository link. FreeBuff downloads a separate copy to your Documents folder and opens it here.</p></div>
+                </div>
+                <form className="mt-3 flex flex-col gap-2 sm:flex-row" onSubmit={(event) => { event.preventDefault(); void act("clone", "Download project", { url: cloneUrl }) }}>
+                  <input value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} placeholder="https://github.com/owner/repository" aria-label="GitHub repository URL to clone" autoComplete="url" className="min-w-0 flex-1 rounded-xl border border-line bg-black/25 px-4 py-3 mono text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-mint/50 focus:ring-2 focus:ring-mint/10" />
+                  <Button kind="primary" className="!px-5 !py-2.5 !text-sm" disabled={!!busy || !apiConnected || !cloneUrl.trim()}>
+                    {busy === "clone" ? <LoaderCircle size={16} className="animate-spin" /> : <Download size={16} />}
+                    {busy === "clone" ? "Downloading…" : "Download and open"}
+                  </Button>
+                </form>
+                <div className="mt-3 grid gap-2 text-[11px] leading-5 text-slate-300 sm:grid-cols-3">
+                  <div className="rounded-lg border border-line bg-black/15 px-3 py-2"><span className="mr-2 font-bold text-mint">1</span>Paste the repo link</div>
+                  <div className="rounded-lg border border-line bg-black/15 px-3 py-2"><span className="mr-2 font-bold text-mint">2</span>FreeBuff downloads a copy</div>
+                  <div className="rounded-lg border border-line bg-black/15 px-3 py-2"><span className="mr-2 font-bold text-mint">3</span>Scan, fix, commit, then PR</div>
+                </div>
+                <p className="mt-2 text-[10px] leading-4 text-slate-400">The original GitHub repository stays unchanged. Public projects can be downloaded without write access. For a private project, sign in to GitHub CLI once before downloading. If macOS blocks the save, allow the terminal running FreeBuff to access Documents.</p>
+              </div>
             </Card>}
 
             {activeStep === 1 && <GuardPanel scan={scan} selected={projectSelected} blocked={hasHighFindings} busy={!!busy} onScan={() => act("scan", "Project scan complete")} />}
             {activeStep === 2 && <FixPanel scan={scan} selected={projectSelected} busy={!!busy} lastFix={state.fix} onScan={() => act("scan", "Project scan complete")} onReviewFix={reviewFix} onContinue={() => { setReviewedFindingsKey(findingsKey); setSelectedStep(3) }} continueDisabled={!scanComplete || hasHighFindings || !!busy} />}
             {activeStep === 3 && <>
-              {!git.available && <div role="note" className="rounded-xl border border-sky-300/25 bg-sky-300/[.07] p-4 text-sm leading-6 text-sky-100"><strong className="block text-base">Git is not set up for this folder yet.</strong> FreeBuff can scan it, but committing needs a Git repository. Create one for this project first, then come back to this step.</div>}
+              {!git.available && <div role="note" className="rounded-xl border border-sky-300/25 bg-sky-300/[.07] p-4 text-sm leading-6 text-sky-100"><strong className="block text-base">Git is not ready for this folder.</strong><span className="mt-1 block">{git.status || "Choose the project's original root folder or download it from GitHub before committing."}</span></div>}
               <ShipPanel ship={ship} git={git} selected={projectSelected} busy={!!busy} focus="prepare" commitMessage={commitMessage} setCommitMessage={setCommitMessage} remoteUrl={remoteUrl} setRemoteUrl={setRemoteUrl} branchName={branchName} setBranchName={setBranchName} prTitle={prTitle || commitMessage} setPrTitle={setPrTitle} prBody={prBody ?? ship.release_notes ?? ""} setPrBody={setPrBody} onCommit={() => act("commit", "Commit action", { message: commitMessage })} onPush={() => act("push", "GitHub push")} onCreateBranch={() => act("branch", "Work branch", { name: branchName })} onCreatePullRequest={() => act("pull-request", "Pull request", { title: prTitle || commitMessage, body: prBody ?? ship.release_notes ?? "" })} onCreateForkPullRequest={() => act("fork-pull-request", "Fork pull request", { title: prTitle || commitMessage, body: prBody ?? ship.release_notes ?? "" })} onConnect={() => act("remote", "Connect GitHub", { url: remoteUrl })} onShip={() => act("ship", "Git review prepared")} onChangelog={() => act("changelog", "Release notes saved")} />
             </>}
             {activeStep === 4 && <ShipPanel ship={ship} git={git} selected={projectSelected} busy={!!busy} focus="publish" commitMessage={commitMessage} setCommitMessage={setCommitMessage} remoteUrl={remoteUrl} setRemoteUrl={setRemoteUrl} branchName={branchName} setBranchName={setBranchName} prTitle={prTitle || commitMessage} setPrTitle={setPrTitle} prBody={prBody ?? ship.release_notes ?? ""} setPrBody={setPrBody} onCommit={() => act("commit", "Commit action", { message: commitMessage })} onPush={() => act("push", "GitHub push")} onCreateBranch={() => act("branch", "Work branch", { name: branchName })} onCreatePullRequest={() => act("pull-request", "Pull request", { title: prTitle || commitMessage, body: prBody ?? ship.release_notes ?? "" })} onCreateForkPullRequest={() => act("fork-pull-request", "Fork pull request", { title: prTitle || commitMessage, body: prBody ?? ship.release_notes ?? "" })} onConnect={() => act("remote", "Connect GitHub", { url: remoteUrl })} onShip={() => act("ship", "Git review prepared")} onChangelog={() => act("changelog", "Release notes saved")} />}

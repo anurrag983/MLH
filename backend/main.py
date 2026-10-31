@@ -80,6 +80,10 @@ class RemoteRequest(BaseModel):
     url: str = Field(min_length=1, max_length=500)
 
 
+class CloneRepositoryRequest(BaseModel):
+    url: str = Field(min_length=1, max_length=500)
+
+
 class BranchRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
 
@@ -172,6 +176,11 @@ def get_state():
 @app.post("/api/workspace")
 def choose_workspace(request: WorkspaceRequest):
     return _action(service.set_workspace, request.path)
+
+
+@app.post("/api/clone")
+def clone_repository(request: CloneRepositoryRequest):
+    return _action(service.clone_github_repository, request.url)
 
 
 @app.post("/api/import-folder")
