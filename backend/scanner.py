@@ -174,6 +174,19 @@ def git_info(root: Path) -> dict:
         inside = run(["git", "rev-parse", "--is-inside-work-tree"])
         if inside.returncode:
             return {"available": False, "branch": "", "remote": "", "github_remote": False, "status": "This folder is not a Git repository.", "changed_files": []}
+        top_level = run(["git", "rev-parse", "--show-toplevel"])
+        if top_level.returncode:
+            return {"available": False, "branch": "", "remote": "", "github_remote": False, "status": "Git could not identify this project's repository root. Select the original project folder and scan again.", "changed_files": []}
+        repository_root = Path(top_level.stdout.strip()).resolve()
+        if repository_root != root:
+            return {
+                "available": False,
+                "branch": "",
+                "remote": "",
+                "github_remote": False,
+                "status": "This folder is inside another Git repository, so FreeBuff will not commit its parent project. Choose this project's own root folder or download it from GitHub.",
+                "changed_files": [],
+            }
         branch = run(["git", "branch", "--show-current"]).stdout.strip()
         status = run(["git", "status", "--short", "--branch"]).stdout.strip()
         remotes = run(["git", "remote", "-v"]).stdout.splitlines()

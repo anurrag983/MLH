@@ -22,11 +22,11 @@ On first launch, create the local account. It is stored on this computer: the pa
 ## Use it with your project
 
 1. Select **Choose project folder** to use the browser folder picker. It imports readable text files for a local scan and skips common dependency and build folders. To work directly on the original files or use Git, paste the full folder path and select **Use this folder**. On macOS, hold Option while right-clicking the folder in Finder and choose **Copy as Pathname**.
-2. Select **Scan project**. Every finding shows its file, exact line, nearby redacted code, why it matters, and a recommended next step.
-3. For a supported Python finding, select **Review safe fix**, inspect the diff, and choose **Save this change** only if it fits your app. FreeBuff makes a private backup and checks Python syntax before replacing the file. Findings without a verified fix require manual work.
-4. In **Git & release**, create a work branch before committing changes. This keeps your work separate from the default branch.
-5. Select **Prepare Git review**, inspect the summary, then select **Commit locally**. The commit action stages all added, edited, and deleted non-ignored project files. Each commit made through FreeBuff automatically appends the next numbered entry to `CHANGELOG.md` with the commit message, date, and changed-file list; the changelog is included in that same commit.
-6. Enter the GitHub repository URL and select **Save URL**. FreeBuff stores it as `origin` in that project's `.git/config`, so you do not enter it again for that folder.
+2. Or, to start from GitHub, paste the repository's main-page URL into **Start from a GitHub project** and select **Download and open**. FreeBuff clones it into `~/Documents/FreeBuff Projects/<repository>` and selects that local copy. Public repositories can be cloned without write access. For private repositories, sign in to GitHub CLI once with `gh auth login`. If macOS blocks the save, allow the terminal running FreeBuff to access Documents.
+3. Select **Scan project**. Every finding shows its file, exact line, nearby redacted code, why it matters, and a recommended next step.
+4. For a supported Python finding, select **Review safe fix**, inspect the diff, and choose **Save this change** only if it fits your app. FreeBuff makes a private backup and checks Python syntax before replacing the file. Findings without a verified fix require manual work.
+5. In **Git & release**, create a work branch before committing changes. This keeps your work separate from the default branch.
+6. Select **Prepare Git review**, inspect the summary, then select **Commit locally**. The commit action stages all added, edited, and deleted non-ignored project files. Each commit made through FreeBuff automatically appends the next numbered entry to `CHANGELOG.md` with the commit message, date, and changed-file list; the changelog is included in that same commit.
 7. Select **Push to GitHub** to send the committed branch and its changelog entry to the configured tracking remote. Git transfers commits and file objects the remote does not have yet, rather than uploading an unchanged copy of the whole folder on every push. The first push may include branch history that is missing remotely.
 8. For a repository you can write to, push the branch and select **Create PR from a branch already pushed to upstream**. To contribute to a public repository without upstream write access, select **Fork & create pull request**. FreeBuff creates your fork if needed, pushes the branch to your fork, and opens a PR against the saved upstream. The PR asks for review and does not merge by itself.
 
@@ -36,7 +36,7 @@ The **Account** button shows the local sign-in. **Delete local account** removes
 
 ## GitHub setup
 
-The selected project must already be a Git repository. In the Git & release section, enter a GitHub repository URL such as `https://github.com/owner/repository.git` and save it for that folder. Sign in once with `gh auth login`. Direct push to the upstream needs write access. Fork-based PRs need a GitHub account, read access to the upstream, and permission to create a fork; private repositories also depend on the owner's fork policy. FreeBuff never asks for or stores a GitHub password or token. Commit, push, and pull request are separate actions; push does not force-push.
+Existing local projects must already be Git repositories. For a GitHub project, use **Download and open** to clone it first; its original repository URL is saved as `origin`. Sign in once with `gh auth login`. Direct push to the upstream needs write access. Fork-based PRs need a GitHub account, read access to the upstream, and permission to create a fork; private repositories also depend on the owner's fork policy. FreeBuff never asks for or stores a GitHub password or token. Commit, push, and pull request are separate actions; push does not force-push.
 
 ## Commands
 

@@ -52,8 +52,8 @@ export default function GettingStartedDialog({ onClose, onChooseFolder, onScan, 
     },
     {
       eyebrow: "QUEST 1 · PICK YOUR PROJECT",
-      title: "Choose the folder you want to work on.",
-      description: "Pick your app's main folder. FreeBuff checks its readable source files on this computer. It does not run or change your app just by scanning.",
+      title: "Choose or download your project.",
+      description: "Pick a folder already on your computer, or use Get from GitHub to paste a repository link. FreeBuff downloads a local copy so you can scan, fix, and commit it here.",
       icon: FolderOpen,
     },
     {
@@ -115,7 +115,7 @@ export default function GettingStartedDialog({ onClose, onChooseFolder, onScan, 
           <div className="flex items-center gap-2"><Button onClick={step === 0 ? onClose : back}><ArrowLeft size={13} />{step === 0 ? "Close" : "Back"}</Button><button onClick={onClose} className="px-2 py-2 text-[10px] text-slate-600 transition hover:text-slate-300">Skip for now</button></div>
           <div className="flex flex-wrap justify-end gap-2">
             {step === 0 && <Button kind="primary" onClick={next}>Start my first quest<Sparkles size={14} /></Button>}
-            {step === 1 && <><Button disabled={busy} onClick={chooseProject}>{busy ? <LoaderCircle className="animate-spin" size={14} /> : <FolderOpen size={14} />}Choose a folder</Button>{workspaceSelected && <Button kind="primary" onClick={next}>Use selected project<ArrowRight size={14} /></Button>}</>}
+            {step === 1 && <><Button disabled={busy} onClick={chooseProject}>{busy ? <LoaderCircle className="animate-spin" size={14} /> : <FolderOpen size={14} />}Choose a folder</Button><Button onClick={onClose}><Github size={14} />Get from GitHub</Button>{workspaceSelected && <Button kind="primary" onClick={next}>Use selected project<ArrowRight size={14} /></Button>}</>}
             {step === 2 && <Button kind="primary" disabled={busy || !workspaceSelected} onClick={runFirstScan}>{busy ? <LoaderCircle className="animate-spin" size={14} /> : <ScanLine size={14} />}Scan my project</Button>}
             {step === 3 && <><Button onClick={onOpenFindings}><FileCode2 size={14} />Open findings</Button><Button kind="primary" onClick={next}>Continue<ArrowRight size={14} /></Button></>}
             {step === 4 && <Button kind="primary" onClick={onOpenGit}><GitPullRequest size={14} />Open Git & release<ArrowRight size={14} /></Button>}
