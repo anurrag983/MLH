@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: freebuff
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: FREEBUF_CORS_ORIGINS
+        value: https://mlh-six.vercel.app,https://mlh.vercel.app

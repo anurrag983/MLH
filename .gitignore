@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 !frontend/.env.example
+!frontend/.env.production
 *.env
 node_modules/
 __pycache__/
@@ -19,3 +20,4 @@ backend/state.json
 .venv
 work
 frontend/node_modules
+outputs/
