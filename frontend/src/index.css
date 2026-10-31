@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-synthesis: none; text-rendering: optimizeLegibility; background: #080c11; font-size: 16px; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 360px; min-height: 100vh; background: radial-gradient(ellipse at 52% -24%, rgba(24,91,63,.20), transparent 48%), #080c11; color: #e5edf2; }
+button, select, input { font: inherit; }
+button { cursor: pointer; }
+::selection { background: rgba(118,247,178,.28); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0b1015; }
+::-webkit-scrollbar-thumb { background: #26343b; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #3c5b50; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.grid-bg { background-image: linear-gradient(rgba(159,191,176,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(159,191,176,.025) 1px, transparent 1px); background-size: 28px 28px; }
+.scanline { background: linear-gradient(90deg, transparent, rgba(118,247,178,.16), transparent); height: 1px; }
+/* Keep dense labels legible on dark panels; the original 9–11px sizes were hard to scan. */
+.text-\[8px\] { font-size: .65rem !important; }
+.text-\[9px\] { font-size: .7rem !important; }
+.text-\[10px\] { font-size: .75rem !important; }
+.text-\[11px\] { font-size: .8125rem !important; }
+.text-\[12px\] { font-size: .875rem !important; }
+.text-slate-400 { color: #b2c0cc !important; }
+.text-slate-500 { color: #9cabb8 !important; }
+.text-slate-600 { color: #8999a7 !important; }
+.text-slate-700 { color: #748593 !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
