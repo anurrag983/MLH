@@ -15,7 +15,16 @@ export default function AuthScreen({ registered, onSubmit, onRetry, unavailable 
   const [showPassword, setShowPassword] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
-  const isRegister = !registered
+  const [mode, setMode] = useState(registered ? "login" : "register")
+  const isRegister = mode === "register"
+
+  const switchMode = (newMode) => {
+    setMode(newMode)
+    setError("")
+    setName("")
+    setEmail("")
+    setPassword("")
+  }
 
   const submit = async (event) => {
     event.preventDefault()
@@ -61,7 +70,17 @@ export default function AuthScreen({ registered, onSubmit, onRetry, unavailable 
             <div className="my-5 rounded-xl border border-line bg-black/25 p-4 mono text-xs"><div className="text-slate-600">$</div><div className="mt-1 text-mint">./start.sh</div></div>
             <Button kind="primary" className="w-full !py-3" onClick={onRetry}><LoaderCircle size={15} />Reconnect</Button>
           </> : <>
-            <div className="mb-5 flex items-center justify-between"><div><div className="mono text-[9px] uppercase tracking-[.2em] text-mint">{isRegister ? "New player · local account" : "Welcome back · local account"}</div><h2 className="mt-2 text-2xl font-black tracking-tight">{isRegister ? "Create your account" : "Sign in to FreeBuff"}</h2></div><div className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-white/[.035] text-mint">{isRegister ? <UserPlus size={18} /> : <LogIn size={18} />}</div></div>
+            <div className="mb-5">
+              <div className="mb-5 flex rounded-xl border border-line bg-black/20 p-1">
+                <button type="button" onClick={() => switchMode("login")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${!isRegister ? "bg-mint text-[#06110b] shadow" : "text-slate-400 hover:text-slate-200"}`}>
+                  <LogIn size={14} /> Login
+                </button>
+                <button type="button" onClick={() => switchMode("register")} className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-bold transition ${isRegister ? "bg-mint text-[#06110b] shadow" : "text-slate-400 hover:text-slate-200"}`}>
+                  <UserPlus size={14} /> Register
+                </button>
+              </div>
+              <div className="flex items-center justify-between"><div><div className="mono text-[9px] uppercase tracking-[.2em] text-mint">{isRegister ? "New player · local account" : "Welcome back · local account"}</div><h2 className="mt-2 text-2xl font-black tracking-tight">{isRegister ? "Create your account" : "Sign in to FreeBuff"}</h2></div><div className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-white/[.035] text-mint">{isRegister ? <UserPlus size={18} /> : <LogIn size={18} />}</div></div>
+            </div>
             <p className="mb-5 text-xs leading-5 text-slate-400">{isRegister ? "One quick setup, then we will take you through your first project like a short game." : "Your project workshop is ready when you are."}</p>
             <div className="mb-5 flex items-center gap-2 rounded-xl border border-line bg-black/20 px-3 py-2.5"><GitCommitHorizontal size={14} className="text-mint" /><div className="h-px flex-1 bg-gradient-to-r from-mint/50 to-sky-400/50" /><GitBranch size={14} className="text-sky-300" /><div className="h-px flex-1 bg-gradient-to-r from-sky-400/50 to-violet-400/50" /><GitPullRequest size={14} className="text-violet-300" /><span className="ml-1 mono text-[9px] text-slate-500">edit → commit → PR</span></div>
 
